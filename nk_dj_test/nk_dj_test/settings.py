@@ -34,7 +34,7 @@ class Dev(Configuration):
         'django.contrib.sessions',
         'django.contrib.messages',
         'django.contrib.staticfiles',
-        'blog',
+        'blog.apps.BlogConfig',
     ]
 
     MIDDLEWARE = [
@@ -52,7 +52,7 @@ class Dev(Configuration):
     TEMPLATES = [
         {
             'BACKEND': 'django.template.backends.django.DjangoTemplates',
-            'DIRS': [],
+            'DIRS': ['./templates',],
             'APP_DIRS': True,
             'OPTIONS': {
                 'context_processors': [
@@ -107,7 +107,7 @@ class Dev(Configuration):
 
     LANGUAGE_CODE = 'en-us'
 
-    TIME_ZONE = 'UTC'
+    TIME_ZONE = 'Europe/Moscow'
 
     USE_I18N = True
 
