@@ -24,4 +24,10 @@
     {% else %}
       <p>This blogger hasn't posted anything yet.</p>
     {% endif %}
+
+    <form action="{{ blogger.id }}/subscribe/"  method="post">
+      {% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Subscribe">
+    </form>
 {% endblock %}

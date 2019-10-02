@@ -25,7 +25,6 @@ class PostListbyAuthorView(generic.ListView):
 
     def get_queryset(self):
         id = self.kwargs['pk']
-        print(id)
         target_author=get_object_or_404(BlogAuthor, pk = id)
         return Post.objects.filter(author=target_author)
 
@@ -80,3 +79,15 @@ class PostCreate(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse('post-detail', kwargs={'pk': self.object.pk,})
+
+
+from django.views.generic.edit import UpdateView
+
+
+class BlogAuthorSubscribe(LoginRequiredMixin, UpdateView):
+    model = BlogAuthor
+    fields = []
+
+    def get_success_url(self):
+        BlogAuthor.objects.get(user = self.request.user).subscribed.add(self.object)
+        return reverse('subscribes')

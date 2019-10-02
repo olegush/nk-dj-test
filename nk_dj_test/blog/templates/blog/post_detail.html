@@ -3,7 +3,7 @@
 {% block content %}
 
 <h1>{{ post.name }}</h1>
-<p><strong>Post date</strong> {{ blog.post_date }}</p>
+<p><strong>Post date</strong> {{ post.post_date }}</p>
 <p><strong>Author:</strong> <a href="{% url 'posts-by-author' post.author.pk %}">{{ post.author }}</a></p>
 <p><strong>Description:</strong></p>
 <p style="white-space:pre-wrap;">{{ post.description }}</p>
