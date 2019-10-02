@@ -25,13 +25,14 @@ class PostListbyAuthorView(generic.ListView):
 
     def get_queryset(self):
         id = self.kwargs['pk']
-        target_author=get_object_or_404(BlogAuthor, pk = id)
+        target_author = get_object_or_404(BlogAuthor, pk = id)
         return Post.objects.filter(author=target_author)
 
     def get_context_data(self, **kwargs):
         id = self.request.user.id
         context = super(PostListbyAuthorView, self).get_context_data(**kwargs)
         context['blogger'] = get_object_or_404(BlogAuthor, pk = self.kwargs['pk'])
+        context['logged_used'] = get_object_or_404(BlogAuthor, user = id)
         return context
 
 
@@ -60,7 +61,7 @@ class BloggerListView(generic.ListView):
 
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import CreateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse
 
 
@@ -81,13 +82,19 @@ class PostCreate(LoginRequiredMixin, CreateView):
         return reverse('post-detail', kwargs={'pk': self.object.pk,})
 
 
-from django.views.generic.edit import UpdateView
-
-
 class BlogAuthorSubscribe(LoginRequiredMixin, UpdateView):
     model = BlogAuthor
     fields = []
 
     def get_success_url(self):
         BlogAuthor.objects.get(user = self.request.user).subscribed.add(self.object)
+        return reverse('subscribes')
+
+
+class BlogAuthorUnsubscribe(LoginRequiredMixin, UpdateView):
+    model = BlogAuthor
+    fields = []
+
+    def get_success_url(self):
+        BlogAuthor.objects.get(user = self.request.user).subscribed.remove(self.object)
         return reverse('subscribes')
