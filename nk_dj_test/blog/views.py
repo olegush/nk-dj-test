@@ -12,14 +12,14 @@ def index(request):
 
 class PostListView(generic.ListView):
     model = Post
-    paginate_by = 5
+    paginate_by = 50
 
 
 from django.shortcuts import get_object_or_404
 
 class PostListbyAuthorView(generic.ListView):
     model = Post
-    paginate_by = 5
+    paginate_by = 50
     template_name ='blog/post_list_by_author.html'
 
     def get_queryset(self):
@@ -40,3 +40,25 @@ class PostDetailView(generic.DetailView):
 class BloggerListView(generic.ListView):
     model = BlogAuthor
     paginate_by = 5
+
+
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView
+from django.urls import reverse
+
+
+class PostCreate(LoginRequiredMixin, CreateView):
+    model = Post
+    fields = ['name', 'description',]
+
+    def get_context_data(self, **kwargs):
+        context = super(PostCreate, self).get_context_data(**kwargs)
+        return context
+
+    def form_valid(self, form):
+        id = self.request.user.pk
+        form.instance.author = get_object_or_404(BlogAuthor, user = id)
+        return super(PostCreate, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.pk,})

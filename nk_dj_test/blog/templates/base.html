@@ -21,6 +21,10 @@
   <div class="col-sm-2">
   {% block sidebar %}
   <ul class="sidebar-nav">
+    <li><a href="{% url 'posts-create' %}">Create a post</a></li>
+  </ul>
+
+  <ul class="sidebar-nav">
     <li><a href="{% url 'index' %}">Home</a></li>
     <li><a href="{% url 'posts' %}">All posts</a></li>
     <li><a href="{% url 'bloggers' %}">All bloggers</a></li>
