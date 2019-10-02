@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 class BlogAuthor(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     about = models.TextField(max_length=1000)
+    subscribed = models.ManyToManyField('self', symmetrical=False, verbose_name="subscribed", related_name="subscribed_to", blank=True)
 
     def get_absolute_url(self):
         return reverse('posts-by-author', args=[str(self.id)])

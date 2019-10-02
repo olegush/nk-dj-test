@@ -6,8 +6,9 @@ from . import views
 urlpatterns = [
     path('', views.index, name='index'),
     path('posts/', views.PostListView.as_view(), name='posts'),
+    path('subscribes/', views.SubscribesListView.as_view(), name='subscribes'),
+    path('post/<int:pk>', views.PostDetailView.as_view(), name='post-detail'),
     path('blogger/<int:pk>', views.PostListbyAuthorView.as_view(), name='posts-by-author'),
     path('blogger/postcreate/', views.PostCreate.as_view(), name='posts-create'),
-    path('post/<int:pk>', views.PostDetailView.as_view(), name='post-detail'),
     path('bloggers/', views.BloggerListView.as_view(), name='bloggers'),
 ]

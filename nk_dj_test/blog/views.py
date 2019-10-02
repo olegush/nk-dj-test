@@ -17,6 +17,7 @@ class PostListView(generic.ListView):
 
 from django.shortcuts import get_object_or_404
 
+
 class PostListbyAuthorView(generic.ListView):
     model = Post
     paginate_by = 50
@@ -24,12 +25,29 @@ class PostListbyAuthorView(generic.ListView):
 
     def get_queryset(self):
         id = self.kwargs['pk']
+        print(id)
         target_author=get_object_or_404(BlogAuthor, pk = id)
         return Post.objects.filter(author=target_author)
 
     def get_context_data(self, **kwargs):
+        id = self.request.user.id
         context = super(PostListbyAuthorView, self).get_context_data(**kwargs)
         context['blogger'] = get_object_or_404(BlogAuthor, pk = self.kwargs['pk'])
+        return context
+
+
+class SubscribesListView(generic.ListView):
+    model = Post
+    paginate_by = 50
+    template_name ='blog/post_listsubscribes.html'
+
+    def get_queryset(self):
+        id = self.request.user.id
+        target_author = get_object_or_404(BlogAuthor, user = id)
+        return Post.objects.filter(author__in=target_author.subscribed.all())
+
+    def get_context_data(self, **kwargs):
+        context = super(SubscribesListView, self).get_context_data(**kwargs)
         return context
 
 
