@@ -1,9 +1,10 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import View, CreateView, UpdateView
 from django.urls import reverse
+from django.db.models import F, Q, Case, When
 
 from .models import Post, BlogAuthor, Status
 
@@ -18,6 +19,9 @@ class PostListView(generic.ListView):
     model = Post
     paginate_by = 50
 
+    def get_queryset(self):
+        return Post.objects.all().annotate(status__read=Case(When(status__user=self.request.user, then='status__read')))
+
 
 class PostListbyAuthorView(generic.ListView):
     model = Post
@@ -27,7 +31,7 @@ class PostListbyAuthorView(generic.ListView):
     def get_queryset(self):
         id = self.kwargs['pk']
         target_author = get_object_or_404(BlogAuthor, pk = id)
-        return Post.objects.filter(author=target_author)
+        return Post.objects.filter(author=target_author).annotate(status__read=F('status__read'))
 
     def get_context_data(self, **kwargs):
         id = self.request.user.id
@@ -45,7 +49,7 @@ class SubscribesListView(generic.ListView):
     def get_queryset(self):
         id = self.request.user.id
         target_author = get_object_or_404(BlogAuthor, user = id)
-        return Post.objects.filter(author__in=target_author.subscribed.all())
+        return Post.objects.filter(author__in=target_author.subscribed.all()).annotate(status__read=F('status__read'))
 
     def get_context_data(self, **kwargs):
         context = super(SubscribesListView, self).get_context_data(**kwargs)
@@ -78,7 +82,6 @@ class PostMarkAsRead(LoginRequiredMixin, CreateView):
 class BloggerListView(generic.ListView):
     model = BlogAuthor
     paginate_by = 50
-
 
 
 class PostCreate(LoginRequiredMixin, CreateView):
