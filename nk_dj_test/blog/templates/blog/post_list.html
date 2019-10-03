@@ -8,7 +8,7 @@
 
       {% for post in post_list %}
       <li>
-        <a href="{{ post.get_absolute_url }}">{{ post.name }}</a> ({{post.post_date}}) — <a href="{% url 'posts-by-author' post.author.pk %}">{{ post.author }}</a>
+        <a href="{{ post.get_absolute_url }}">{{ post.name }}</a> ({{post.post_date}}) — <a href="{% url 'posts-by-author' post.author.pk %}">{{ post.author }} </a> {% if post.status__read %} прочитано {% endif %}
       </li>
       {% endfor %}
 
