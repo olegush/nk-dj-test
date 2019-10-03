@@ -8,4 +8,18 @@
 <p><strong>Description:</strong></p>
 <p style="white-space:pre-wrap;">{{ post.description }}</p>
 
+{% if read %}
+  <form action="markasread/"  method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" class="btn" value="Прочитано" disabled/>
+  </form>
+{% else %}
+  <form action="markasread/"  method="post">
+    {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value="Пометить прочитанным">
+  </form>
+{% endif %}
+
 {% endblock %}

@@ -1,7 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.views import generic
-from .models import Post, BlogAuthor
 from django.contrib.auth.models import User
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import View, CreateView, UpdateView
+from django.urls import reverse
+
+from .models import Post, BlogAuthor, Status
 
 
 def index(request):
@@ -13,9 +17,6 @@ def index(request):
 class PostListView(generic.ListView):
     model = Post
     paginate_by = 50
-
-
-from django.shortcuts import get_object_or_404
 
 
 class PostListbyAuthorView(generic.ListView):
@@ -54,15 +55,30 @@ class SubscribesListView(generic.ListView):
 class PostDetailView(generic.DetailView):
     model = Post
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['read'] = Status.objects.filter(user=self.request.user, post=context['post'].id).first()
+        return context
+
+
+class PostMarkAsRead(LoginRequiredMixin, CreateView):
+    model = Status
+    fields = []
+
+    def get_context_data(self, **kwargs):
+        context = super(PostMarkAsRead, self).get_context_data(**kwargs)
+        return context
+
+    def get_success_url(self):
+        read_post = Post.objects.select_related('author__user').get(pk=self.kwargs['pk'])
+        Status.objects.create(user=self.request.user, post=read_post, read=True)
+        return reverse('post-detail', kwargs={'pk': self.kwargs['pk'],})
+
 
 class BloggerListView(generic.ListView):
     model = BlogAuthor
-    paginate_by = 5
+    paginate_by = 50
 
-
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import CreateView, UpdateView
-from django.urls import reverse
 
 
 class PostCreate(LoginRequiredMixin, CreateView):

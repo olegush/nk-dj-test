@@ -31,3 +31,12 @@ class Post(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Status(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
+    read = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f'user: {self.user}, post: {self.post}'
