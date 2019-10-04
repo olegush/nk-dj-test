@@ -1,10 +1,12 @@
 from django.shortcuts import render, get_object_or_404
 from django.views import generic
-#from django.contrib.auth.models import User
+from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic.edit import View, CreateView, UpdateView
+from django.views.generic.edit import CreateView, UpdateView
 from django.urls import reverse
 from django.db.models import F, Q, Case, When
+from django.core.mail import send_mail
+from django.conf import settings
 
 from .models import Post, BlogAuthor, Status
 
@@ -26,7 +28,7 @@ class PostListView(generic.ListView):
 class PostListbyAuthorView(generic.ListView):
     model = Post
     paginate_by = 50
-    template_name ='blog/post_list_by_author.html'
+    template_name = 'blog/post_list_by_author.html'
 
     def get_queryset(self):
         id = self.kwargs['pk']
@@ -98,6 +100,11 @@ class PostCreate(LoginRequiredMixin, CreateView):
         return super(PostCreate, self).form_valid(form)
 
     def get_success_url(self):
+        user = BlogAuthor.objects.get(user = self.request.user)
+        subject = f'New post added by {user}'
+        message = f'{user} just added <a href="/blog/post/{self.object.id}/">new post</a>'
+        recipient_list = [u.user.email  for u in BlogAuthor.objects.all() if user in u.subscribed.all()]
+        send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list )
         return reverse('post-detail', kwargs={'pk': self.object.pk,})
 
 
