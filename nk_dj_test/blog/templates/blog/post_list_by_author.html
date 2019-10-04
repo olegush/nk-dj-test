@@ -2,15 +2,12 @@
 
 {% block content %}
 
-    <h1>Blogger: {{blogger}}</h1>
+    <h1>Автор: {{author}}</h1>
 
-    <h3>About</h3>
-
-
-    <p>{{blogger.about}}</p>
+    <p>{{author.about}}</p>
 
     {% if post_list %}
-    <h3>Blogs list</h3>
+    <h3>Посты</h3>
     <ul>
 
       {% for post in post_list %}
@@ -22,19 +19,19 @@
     </ul>
 
     {% else %}
-      <p>This blogger hasn't posted anything yet.</p>
+      <p>This author hasn't posted anything yet.</p>
     {% endif %}
 
 
-    {% if blogger != logged_used %}
-      {% if blogger in logged_used.subscribed.all %}
-        <form action="{{ blogger.id }}/unsubscribe/"  method="post">
+    {% if author != logged_used %}
+      {% if author in logged_used.subscribed.all %}
+        <form action="{{ author.id }}/unsubscribe/"  method="post">
           {% csrf_token %}
             {{ form.as_p }}
             <input type="submit" value="Отписаться">
         </form>
       {% else %}
-        <form action="{{ blogger.id }}/subscribe/"  method="post">
+        <form action="{{ author.id }}/subscribe/"  method="post">
           {% csrf_token %}
             {{ form.as_p }}
             <input type="submit" value="Подписаться">

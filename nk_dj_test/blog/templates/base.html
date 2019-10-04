@@ -22,23 +22,20 @@
   {% block sidebar %}
   <ul class="sidebar-nav">
    {% if user.is_authenticated %}
-     <li>User: {{ user.get_username }}</li>
-     <li><a href="{% url 'posts-create' %}">Create a post</a></li>
-     <li><a href="{% url 'subscribes' %}">My subscribes</a></li>
-     <li><a href="{% url 'logout'%}?next={{request.path}}">Logout</a></li>
+     <li>Пользователь: {{ user.get_username }}</li>
+     <li><a href="{% url 'posts-create' %}">Добавить пост</a></li>
+     <li><a href="{% url 'subscribes' %}">Мои подписки</a></li>
+     <li><a href="{% url 'logout'%}?next={{request.path}}">Выход</a></li>
    {% else %}
-     <li><a href="{% url 'login'%}?next={{request.path}}">Login</a></li>
+     <li><a href="{% url 'login'%}?next={{request.path}}">Вход</a></li>
    {% endif %}
   </ul>
 
   <ul class="sidebar-nav">
-    <li><a href="{% url 'index' %}">Home</a></li>
-    <li><a href="{% url 'posts' %}">All posts</a></li>
-    <li><a href="{% url 'bloggers' %}">All bloggers</a></li>
+    <li><a href="{% url 'index' %}">Главная</a></li>
+    <li><a href="{% url 'posts' %}">Все посты</a></li>
+    <li><a href="{% url 'authors' %}">Все авторы</a></li>
   </ul>
-
-
-
   {% endblock %}
   </div>
   <div class="col-sm-10 ">
