@@ -3,6 +3,8 @@ from datetime import datetime
 from django.db import models
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 class BlogAuthor(models.Model):
@@ -28,6 +30,14 @@ class Post(models.Model):
 
     def get_absolute_url(self):
         return reverse('post-detail', args=[str(self.id)])
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        user = BlogAuthor.objects.get(id = self.author_id)
+        subject = f'New post added by {user}'
+        message = f'{user} just added <a href="/blog/post/{self.id}/">new post</a>'
+        recipient_list = [u.user.email  for u in BlogAuthor.objects.all() if user in u.subscribed.all()]
+        send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list )
 
     def __str__(self):
         return self.name
