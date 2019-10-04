@@ -7,7 +7,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 
-class BlogAuthor(models.Model):
+class Author(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     about = models.TextField(max_length=1000)
     subscribed = models.ManyToManyField('self', symmetrical=False, verbose_name="subscribed", related_name="subscribed_to", blank=True)
@@ -21,7 +21,7 @@ class BlogAuthor(models.Model):
 
 class Post(models.Model):
     name = models.CharField(max_length=200)
-    author = models.ForeignKey(BlogAuthor, on_delete=models.SET_NULL, null=True)
+    author = models.ForeignKey(Author, on_delete=models.SET_NULL, null=True)
     description = models.TextField(max_length=3000)
     post_date = models.DateTimeField(default=datetime.now)
 
@@ -33,10 +33,10 @@ class Post(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        user = BlogAuthor.objects.get(id = self.author_id)
+        user = Author.objects.get(id = self.author_id)
         subject = f'New post added by {user}'
         message = f'{user} just added <a href="/blog/post/{self.id}/">new post</a>'
-        recipient_list = [u.user.email  for u in BlogAuthor.objects.all() if user in u.subscribed.all()]
+        recipient_list = [author.user.email  for author in Author.objects.all() if user in author.subscribed.all()]
         send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list )
 
     def __str__(self):

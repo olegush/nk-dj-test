@@ -2,9 +2,9 @@ from django.contrib import admin
 
 from django.contrib import admin
 
-from .models import BlogAuthor, Post
+from .models import Author, Post
 
-admin.site.register(BlogAuthor)
+admin.site.register(Author)
 
 @admin.register(Post)
 class BlogAdmin(admin.ModelAdmin):

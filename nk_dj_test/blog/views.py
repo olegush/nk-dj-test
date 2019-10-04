@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render
 from django.views import generic
 from django.contrib.auth.models import User
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -7,13 +7,13 @@ from django.urls import reverse
 from django.db.models import F, Q, Case, When
 
 
-from .models import Post, BlogAuthor, Status
+from .models import Post, Author, Status
 
 
 def index(request):
     return render(
         request,
-        'index.html',
+        'index.html'
     )
 
 class PostListView(generic.ListView):
@@ -30,15 +30,14 @@ class PostListbyAuthorView(generic.ListView):
     template_name = 'blog/post_list_by_author.html'
 
     def get_queryset(self):
-        id = self.kwargs['pk']
-        target_author = get_object_or_404(BlogAuthor, pk = id)
+        target_author = Author.objects.get(pk = self.kwargs['pk'])
         return Post.objects.filter(author=target_author).annotate(status__read=F('status__read'))
 
     def get_context_data(self, **kwargs):
         id = self.request.user.id
         context = super(PostListbyAuthorView, self).get_context_data(**kwargs)
-        context['blogger'] = get_object_or_404(BlogAuthor, pk = self.kwargs['pk'])
-        context['logged_used'] = get_object_or_404(BlogAuthor, user = id)
+        context['author'] = Author.objects.get(pk = self.kwargs['pk'])
+        context['logged_used'] = Author.objects.get(user = id)
         return context
 
 
@@ -49,7 +48,7 @@ class SubscribesListView(generic.ListView):
 
     def get_queryset(self):
         id = self.request.user.id
-        target_author = get_object_or_404(BlogAuthor, user = id)
+        target_author = Author.objects.get(user = id)
         return Post.objects.filter(author__in=target_author.subscribed.all()).annotate(status__read=F('status__read'))
 
     def get_context_data(self, **kwargs):
@@ -80,8 +79,8 @@ class PostMarkAsRead(LoginRequiredMixin, CreateView):
         return reverse('post-detail', kwargs={'pk': self.kwargs['pk'],})
 
 
-class BloggerListView(generic.ListView):
-    model = BlogAuthor
+class AuthorsListView(generic.ListView):
+    model = Author
     paginate_by = 50
 
 
@@ -95,26 +94,26 @@ class PostCreate(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         id = self.request.user.pk
-        form.instance.author = get_object_or_404(BlogAuthor, user = id)
+        form.instance.author = Author.objects.get(user = id)
         return super(PostCreate, self).form_valid(form)
 
     def get_success_url(self):
         return reverse('post-detail', kwargs={'pk': self.object.pk,})
 
 
-class BlogAuthorSubscribe(LoginRequiredMixin, UpdateView):
-    model = BlogAuthor
+class AuthorSubscribe(LoginRequiredMixin, UpdateView):
+    model = Author
     fields = []
 
     def get_success_url(self):
-        BlogAuthor.objects.get(user = self.request.user).subscribed.add(self.object)
+        Author.objects.get(user = self.request.user).subscribed.add(self.object)
         return reverse('subscribes')
 
 
-class BlogAuthorUnsubscribe(LoginRequiredMixin, UpdateView):
-    model = BlogAuthor
+class AuthorUnsubscribe(LoginRequiredMixin, UpdateView):
+    model = Author
     fields = []
 
     def get_success_url(self):
-        BlogAuthor.objects.get(user = self.request.user).subscribed.remove(self.object)
+        Author.objects.get(user = self.request.user).subscribed.remove(self.object)
         return reverse('subscribes')
