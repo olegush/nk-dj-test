@@ -16,12 +16,16 @@ def index(request):
         'index.html'
     )
 
+
 class PostListView(generic.ListView):
     model = Post
     paginate_by = 50
 
     def get_queryset(self):
-        return Post.objects.all().annotate(status__read=Case(When(status__user=self.request.user, then='status__read')))
+        user = self.request.user
+        posts = Post.objects.all()
+        status_case = Case(When(status__user=user, then='status__read'))
+        return posts.annotate(status__read=status_case)
 
 
 class PostListbyAuthorView(generic.ListView):
@@ -31,23 +35,26 @@ class PostListbyAuthorView(generic.ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['author'] = Author.objects.get(pk = self.kwargs['pk'])
-        context['logged_used'] = Author.objects.get(user = self.request.user.id)
+        user_id = self.request.user.id
+        context['author'] = Author.objects.get(pk=self.kwargs['pk'])
+        context['logged_used'] = Author.objects.get(user=user_id)
         return context
 
     def get_queryset(self):
-        author = Author.objects.get(pk = self.kwargs['pk'])
-        return Post.objects.filter(author=author).annotate(status__read=F('status__read'))
+        author = Author.objects.get(pk=self.kwargs['pk'])
+        posts = Post.objects.filter(author=author)
+        return posts.annotate(status__read=F('status__read'))
 
 
 class SubscribesListView(generic.ListView):
     model = Post
     paginate_by = 50
-    template_name ='blog/post_listsubscribes.html'
+    template_name = 'blog/post_listsubscribes.html'
 
     def get_queryset(self):
-        author = Author.objects.get(user = self.request.user.id)
-        return Post.objects.filter(author__in=author.subscribed.all()).annotate(status__read=F('status__read'))
+        author = Author.objects.get(user=self.request.user.id)
+        posts = Post.objects.filter(author__in=author.subscribed.all())
+        return posts.annotate(status__read=F('status__read'))
 
 
 class PostDetailView(generic.DetailView):
@@ -55,7 +62,9 @@ class PostDetailView(generic.DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['read'] = Status.objects.filter(user=self.request.user, post=context['post'].id).first()
+        user = self.request.user
+        post_id = context['post'].id
+        context['read'] = Status.objects.filter(user=user, post=post_id).first()
         return context
 
 
@@ -64,9 +73,11 @@ class PostMarkAsRead(LoginRequiredMixin, CreateView):
     fields = []
 
     def get_success_url(self):
-        read_post = Post.objects.select_related('author__user').get(pk=self.kwargs['pk'])
-        Status.objects.create(user=self.request.user, post=read_post, read=True)
-        return reverse('post-detail', kwargs={'pk': self.kwargs['pk'],})
+        post_id = self.kwargs['pk']
+        user = self.request.user
+        read_post = Post.objects.select_related('author__user').get(pk=post_id)
+        Status.objects.create(user=user, post=read_post, read=True)
+        return reverse('post-detail', kwargs={'pk': post_id})
 
 
 class AuthorsListView(generic.ListView):
@@ -76,15 +87,16 @@ class AuthorsListView(generic.ListView):
 
 class PostCreate(LoginRequiredMixin, CreateView):
     model = Post
-    fields = ['name', 'description',]
+    fields = ['name', 'description']
 
     def form_valid(self, form):
         id = self.request.user.pk
-        form.instance.author = Author.objects.get(user = id)
+        form.instance.author = Author.objects.get(user=id)
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('post-detail', kwargs={'pk': self.object.pk,})
+        post_id = self.object.pk
+        return reverse('post-detail', kwargs={'pk': post_id})
 
 
 class AuthorSubscribe(LoginRequiredMixin, UpdateView):
@@ -92,7 +104,8 @@ class AuthorSubscribe(LoginRequiredMixin, UpdateView):
     fields = []
 
     def get_success_url(self):
-        Author.objects.get(user = self.request.user).subscribed.add(self.object)
+        user = self.request.user
+        Author.objects.get(user=user).subscribed.add(self.object)
         return reverse('subscribes')
 
 
@@ -101,5 +114,6 @@ class AuthorUnsubscribe(LoginRequiredMixin, UpdateView):
     fields = []
 
     def get_success_url(self):
-        Author.objects.get(user = self.request.user).subscribed.remove(self.object)
+        user = self.request.user
+        Author.objects.get(user=user).subscribed.remove(self.object)
         return reverse('subscribes')
