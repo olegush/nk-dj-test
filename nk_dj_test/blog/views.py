@@ -29,16 +29,15 @@ class PostListbyAuthorView(generic.ListView):
     paginate_by = 50
     template_name = 'blog/post_list_by_author.html'
 
-    def get_queryset(self):
-        target_author = Author.objects.get(pk = self.kwargs['pk'])
-        return Post.objects.filter(author=target_author).annotate(status__read=F('status__read'))
-
     def get_context_data(self, **kwargs):
-        id = self.request.user.id
-        context = super(PostListbyAuthorView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['author'] = Author.objects.get(pk = self.kwargs['pk'])
-        context['logged_used'] = Author.objects.get(user = id)
+        context['logged_used'] = Author.objects.get(user = self.request.user.id)
         return context
+
+    def get_queryset(self):
+        author = Author.objects.get(pk = self.kwargs['pk'])
+        return Post.objects.filter(author=author).annotate(status__read=F('status__read'))
 
 
 class SubscribesListView(generic.ListView):
@@ -47,13 +46,8 @@ class SubscribesListView(generic.ListView):
     template_name ='blog/post_listsubscribes.html'
 
     def get_queryset(self):
-        id = self.request.user.id
-        target_author = Author.objects.get(user = id)
-        return Post.objects.filter(author__in=target_author.subscribed.all()).annotate(status__read=F('status__read'))
-
-    def get_context_data(self, **kwargs):
-        context = super(SubscribesListView, self).get_context_data(**kwargs)
-        return context
+        author = Author.objects.get(user = self.request.user.id)
+        return Post.objects.filter(author__in=author.subscribed.all()).annotate(status__read=F('status__read'))
 
 
 class PostDetailView(generic.DetailView):
@@ -68,10 +62,6 @@ class PostDetailView(generic.DetailView):
 class PostMarkAsRead(LoginRequiredMixin, CreateView):
     model = Status
     fields = []
-
-    def get_context_data(self, **kwargs):
-        context = super(PostMarkAsRead, self).get_context_data(**kwargs)
-        return context
 
     def get_success_url(self):
         read_post = Post.objects.select_related('author__user').get(pk=self.kwargs['pk'])
@@ -88,14 +78,10 @@ class PostCreate(LoginRequiredMixin, CreateView):
     model = Post
     fields = ['name', 'description',]
 
-    def get_context_data(self, **kwargs):
-        context = super(PostCreate, self).get_context_data(**kwargs)
-        return context
-
     def form_valid(self, form):
         id = self.request.user.pk
         form.instance.author = Author.objects.get(user = id)
-        return super(PostCreate, self).form_valid(form)
+        return super().form_valid(form)
 
     def get_success_url(self):
         return reverse('post-detail', kwargs={'pk': self.object.pk,})
